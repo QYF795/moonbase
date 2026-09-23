@@ -1,0 +1,28 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Check
+        run: moon check
+      - name: Test (native)
+        run: moon test --target native
+      - name: Test (js)
+        run: moon test --target js
+      - name: Test (wasm-gc)
+        run: moon test --target wasm-gc
+      - name: Zero-FFI gate
+        run: |
+          if grep -rEn 'extern "C"|extern "wasm"' src; then
+            echo "::error::FFI is forbidden in moonbase"
+            exit 1
+          fi
