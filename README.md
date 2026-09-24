@@ -22,7 +22,7 @@ MoonBit 生态的痛点不是「没有包」，而是「包会烂」：语言演
 |---|---|---|
 | `@mem.allocator` | `Allocator` trait（alloc/free/reset） | ✅ M0 |
 | `@mem.bump` | `BumpAllocator`：O(1) bump 分配，整场 reset | ✅ M0 |
-| `@mem.slab` | `SlabAllocator`：固定大小类 | 📋 M1 |
+| `@mem.slab` | `SlabAllocator`：固定大小块分配（对象池/每实体内存，双释放检测，LIFO 复用） | ✅ M1 |
 | `@mem.buddy` | `BuddyAllocator`：2 的幂 | 📋 M1 |
 | `@mem.arena` | `Arena[T]`：类型化分配，句柄防悬垂 | 📋 M2 |
 | `@collections.ring_buffer` | 定容 FIFO 环形缓冲（SPSC 友好，满则拒绝） | ✅ M0 |

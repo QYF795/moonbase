@@ -39,14 +39,14 @@ moonbase 是 MoonBit 的底层基础设施库：为嵌入式、游戏、运行�
 
 ## 3. 复杂度总表
 
-| 操作 | Bump | RingBuffer | BitVec |
-|---|---|---|---|
-| alloc | O(1) | — | — |
-| free | O(1)（no-op） | — | — |
-| reset | O(1) | — | — |
-| push/pop/peek | — | O(1) | — |
-| get/set | — | — | O(1) |
-| popcnt | — | — | O(n/64) |
+| 操作 | Bump | Slab | RingBuffer | BitVec |
+|---|---|---|---|---|
+| alloc | O(1) | O(1) | — | — |
+| free | O(1)（no-op） | O(1) | — | — |
+| reset | O(1) | O(n) | — | — |
+| push/pop/peek | — | — | O(1) | — |
+| get/set | — | — | — | O(1) |
+| popcnt | — | — | — | O(n/64) |
 
 最坏情况碎片：bump 每次分配 ≤ align-1 字节。
 
@@ -55,3 +55,13 @@ moonbase 是 MoonBit 的底层基础设施库：为嵌入式、游戏、运行�
 - **确定性伪随机属性测试**：LCG 种子固定 → 任何环境下重放一致；随机操作序列后校验不变量（不重叠、对齐、FIFO 序、popcnt 一致性）
 - **三后端矩阵**：同一套测试在 native / js / wasm-gc 上全部运行
 - **零 FFI 门禁**：CI 中 `grep extern` 出现即失败
+
+## 5. M1 模块设计
+
+### 5.1 SlabAllocator：固定大小块
+
+- 自由链表放在与缓冲区平行的 `next[]`（`FixedArray[Int]`）里，alloc/free 不触碰负载字节
+- `-2` 哨兵标记已分配块 → 双重释放可检测，直接 `abort`（而不是静默破坏链表）
+- LIFO 复用：最近释放的块最先被再分配，热块保持缓存驻留
+- 通过 `Allocator` trait 使用：size ≤ block_size、align 整除 block_size，否则 `None`
+- 应用场景：对象池、每实体/每帧内存（游戏服务端、嵌入式固件）
