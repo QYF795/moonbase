@@ -54,13 +54,13 @@ arena.reset()  // 整场回收，O(1)
 
 - `moon check` 零警告（作为 CI 硬性门槛）
 - 每个模块配单元测试 + 确定性伪随机序列的属性测试（不变量：不重叠、对齐、FIFO 序）
-- 复杂度标注进 API 文档；基准方法见 [docs/benchmarks.md](docs/benchmarks.md)
+- 复杂度标注进 API 文档；基准方法见 [docs/benchmarks.md](docs/benchmarks.md)，场景选型见 [docs/perf.md](docs/perf.md)
 
 ## 路线图
 
 - **M1**：slab/buddy 分配器、sparse_set、fixed_deque、三后端 CI —— 已完成（2026-09）
 - **M2**：`Arena[T]` 类型化分配 ✅、基准测试 ✅、mooncakes.io 发布（待账号）
-- **M3**：无锁 SPSC 队列（依赖 core 原子操作的可用性）、性能文档
+- **M3**：无锁 SPSC 队列（依赖 core 原子操作的可用性）
 
 ## 许可
 
