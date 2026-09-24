@@ -27,7 +27,7 @@ MoonBit 生态的痛点不是「没有包」，而是「包会烂」：语言演
 | `@mem.arena` | `Arena[T]`：类型化分配，句柄防悬垂 | 📋 M2 |
 | `@collections.ring_buffer` | 定容 FIFO 环形缓冲（SPSC 友好，满则拒绝） | ✅ M0 |
 | `@collections.bit_vec` | 定容位向量（`UInt64` 字存储，含 `popcnt`） | ✅ M0 |
-| `@collections.sparse_set` | 稀疏集合（ECS 常用） | 📋 M1 |
+| `@collections.sparse_set` | 稀疏集合（ECS 存活实体集：O(1) 增删查，迭代 O(len)） | ✅ M1 |
 | `@collections.fixed_deque` | 定容双端队列 | 📋 M1 |
 
 ## 快速开始
