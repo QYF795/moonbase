@@ -30,6 +30,7 @@ MoonBit 生态的痛点不是「没有包」，而是「包会烂」：语言演
 | `@collections.SparseSet` | 稀疏集合（ECS 存活实体集：O(1) 增删查，迭代 O(len)） | ✅ M1 |
 | `@collections.FixedDeque` | 定容双端队列（work-stealing 窃取模式：owner 前入前出、thief 后出） | ✅ M1 |
 | `bench` | 基准测试套件（9 个真实工作负载，`moon bench` 运行，CI 跑 native release） | ✅ M2 |
+| `examples` | 迷你权威游戏服务器：六个模块组合成一个 tick 循环（见 src/examples/） | ✅ M2 |
 
 ## 快速开始
 
