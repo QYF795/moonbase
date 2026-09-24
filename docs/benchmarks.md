@@ -40,24 +40,24 @@ moon bench --target native --release
 
 ## 参考数据
 
-2026-09-25 本机实测（Windows 11，moon 0.1.20260920，node 运行 js/wasm-gc）。每次迭代耗时（ns）：
+2026-09-25 本机实测（Windows 11，moon 0.1.20260920，node 运行 js/wasm-gc；`storage()` 落地后的数字）。每次迭代耗时（ns）：
 
 | 基准 | js (node) | wasm-gc |
 |---|---|---|
-| bump: 64x32B frame + reset | 2.95 | 5.34 |
-| slab: alloc+free 16B blocks | 10.9 | 20.0 |
-| buddy: alloc+free 64B | 483 | 676 |
-| buddy: alloc+free 512B | 94.0 | 126 |
-| arena: 64 values + reset | 3.25 | 2.12 |
-| ring_buffer: 128 push + 128 pop | 11.9 | 23.1 |
-| fixed_deque: 64 push_front + 64 pop_back | 5.05 | 7.41 |
-| sparse_set: 256 insert + 256 remove | 39.2 | 136 |
-| bit_vec: set+scan 4096 bits + popcnt | 2.29×10⁶ | 38.6×10³ |
+| bump: 64x32B frame + reset | 2.93 | 6.77 |
+| slab: alloc+free 16B blocks | 10.6 | 19.4 |
+| buddy: alloc+free 64B | 453 | 652 |
+| buddy: alloc+free 512B | 86.8 | 120 |
+| arena: 64 values + reset | 3.07 | 2.04 |
+| ring_buffer: 128 push + 128 pop | 14.8 | 22.7 |
+| fixed_deque: 64 push_front + 64 pop_back | 7.01 | 6.39 |
+| sparse_set: 256 insert + 256 remove | 52.6 | 126 |
+| bit_vec: set+scan 4096 bits + popcnt | 4.50×10⁶ | 40.8×10³ |
 
 几个诚实读数（也见 docs/perf.md 的选型指南）：
 
 - **buddy 512B 每对比 64B 快**：512B 请求在树里下降 7 层，64B 下降 10 层（65536/512 = 128 叶 vs 1024 叶）——分配成本随树深度变化，不是常数。
-- **bit_vec 在 js 上慢 60 倍**：js 的数值是 Double，64 位字运算走软件模拟；native / wasm-gc 才体现 `UInt64` 的硬件路径。
+- **bit_vec 在 js 上慢百倍**：js 的数值是 Double，64 位字运算走软件模拟；native / wasm-gc 才体现 `UInt64` 的硬件路径。
 - bump/arena 的每次迭代已接近后端字段写入的下限，说明它们没有隐藏的线性成本——这正是场景选择它们的原因。
 
 数字会随后端和 moon 版本漂移，**别拿本表当跨库对比的依据**；发布前以 CI 的 native release 数据为准（GitHub Actions 日志）。

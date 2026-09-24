@@ -23,8 +23,14 @@
 // Costs: alloc/free are O(log n) in the buffer size. Bookkeeping is one
 // `Int` per tree node (2 * leaves entries, 25% overhead at 64-bit Int,
 // min_block = 64).
+//
+// Payload access: `storage()` returns the backing `FixedArray[Byte]` so
+// offsets from `alloc` are directly usable as indexes. A request that
+// returns `offset` owns the bytes [offset, offset + target) where
+// target is the rounded-up block size actually handed out; write only
+// inside it. `free` and `reset` never touch payload bytes.
 pub struct BuddyAllocator {
-  buf : Bytes
+  buf : FixedArray[Byte]
   min_block : Int
   leaves : Int
   tree : FixedArray[Int]
@@ -47,7 +53,7 @@ pub fn BuddyAllocator::new(capacity : Int, min_block : Int) -> BuddyAllocator {
     abort("BuddyAllocator::new: capacity must be a multiple of min_block")
   }
   let allocator = {
-    buf: Bytes::make(capacity, b'\x00'),
+    buf: FixedArray::make(capacity, b'\x00'),
     min_block,
     leaves: capacity / min_block,
     tree: FixedArray::make(2 * (capacity / min_block), 0),
@@ -60,6 +66,14 @@ pub fn BuddyAllocator::new(capacity : Int, min_block : Int) -> BuddyAllocator {
 // Total bytes of backing storage (the whole-buffer block size).
 pub fn BuddyAllocator::capacity(self : BuddyAllocator) -> Int {
   self.buf.length()
+}
+
+// The backing storage itself. Index it with the offsets `alloc` returns
+// to read or write payload bytes. `free` and `reset` never touch
+// payload bytes, so a block's content survives until it is handed out
+// again by a later `alloc`.
+pub fn BuddyAllocator::storage(self : BuddyAllocator) -> FixedArray[Byte] {
+  self.buf
 }
 
 // Smallest allocatable block size in bytes.
@@ -322,4 +336,25 @@ test "buddy: invalid requests are rejected with None" {
   assert_true(allocator.alloc(1, 96) is None, msg="align must not exceed min_block")
   assert_true(allocator.alloc(1, 48) is None, msg="align must divide min_block")
   assert_true(allocator.alloc(1025, 1) is None, msg="size must not exceed capacity")
+}
+
+test "buddy: payload bytes are writable and survive free untouched" {
+  let allocator = BuddyAllocator::new(1024, 64)
+  let off = match allocator.alloc(128, 8) {
+    Some(off) => off
+    None => abort("unexpected exhaustion")
+  }
+  let storage = allocator.storage()
+  storage[off] = b'P'
+  storage[off + 127] = b'Q'
+  assert_eq(storage[off], b'P')
+  assert_eq(storage[off + 127], b'Q')
+  // Blocks outside the allocated range stay zeroed.
+  assert_eq(storage[off + 128], b'\x00')
+  allocator.free(off)
+  assert_eq(storage[off], b'P')
+  assert_eq(storage[off + 127], b'Q')
+  // The same block comes back with its payload intact.
+  assert_eq(allocator.alloc(128, 8), Some(off))
+  assert_eq(storage[off], b'P')
 }

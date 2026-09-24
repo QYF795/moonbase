@@ -40,7 +40,10 @@ moon add moonbit-community/moonbase   # 发布后可用
 ```moonbit
 let arena = @mem.BumpAllocator::new(1024 * 1024)
 match arena.alloc(64, 8) {
-  Some(off) => println("block at offset \{off}")
+  Some(off) => {
+    arena.storage()[off] = b'!'  // offset 就是 storage 的下标
+    println("block at offset \{off}")
+  }
   None => abort("out of memory")
 }
 arena.reset()  // 整场回收，O(1)

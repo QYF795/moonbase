@@ -16,8 +16,14 @@
 //
 // Alignment: block offsets are multiples of `block_size`, so any
 // alignment that divides `block_size` is honored for free.
+//
+// Payload access: `storage()` returns the backing `FixedArray[Byte]` so
+// offsets from `alloc` are directly usable as indexes. A block from
+// `alloc` spans [offset, offset + block_size); write only inside it.
+// `free` hands the block to the next `alloc` untouched — payload bytes
+// survive a free/realloc round trip (tested below).
 pub struct SlabAllocator {
-  buf : Bytes
+  buf : FixedArray[Byte]
   block_size : Int
   num_blocks : Int
   next : FixedArray[Int]
@@ -42,7 +48,7 @@ pub fn SlabAllocator::new(num_blocks : Int, block_size : Int) -> SlabAllocator {
   }
   let free_head = if num_blocks > 0 { 0 } else { -1 }
   {
-    buf: Bytes::make(num_blocks * block_size, b'\x00'),
+    buf: FixedArray::make(num_blocks * block_size, b'\x00'),
     block_size,
     num_blocks,
     next,
@@ -54,6 +60,14 @@ pub fn SlabAllocator::new(num_blocks : Int, block_size : Int) -> SlabAllocator {
 // Size in bytes of every block handed out by this allocator.
 pub fn SlabAllocator::block_size(self : SlabAllocator) -> Int {
   self.block_size
+}
+
+// The backing storage itself. Index it with the offsets `alloc` returns
+// to read or write payload bytes. `free` and `reset` never touch
+// payload bytes (documented above), so data written into a block
+// survives until the next `alloc` hands that block to someone else.
+pub fn SlabAllocator::storage(self : SlabAllocator) -> FixedArray[Byte] {
+  self.buf
 }
 
 // Total number of blocks (allocated or free).
@@ -180,6 +194,42 @@ test "slab: usable through the Allocator trait" {
   assert_true(alloc_through_trait(pool, 17, 8) is None, msg="oversized request must fail")
   assert_true(alloc_through_trait(pool, 16, 3) is None, msg="unalignable request must fail")
   assert_eq(pool.used(), 0, msg="reset through the trait must work")
+}
+
+test "slab: payload bytes are writable and survive free/realloc untouched" {
+  let pool = SlabAllocator::new(2, 16)
+  let off = match pool.alloc() {
+    Some(off) => off
+    None => abort("unexpected exhaustion")
+  }
+  let storage = pool.storage()
+  storage[off] = b'X'
+  storage[off + 15] = b'Y'
+  pool.free(off)
+  // Documented: free hands the block to the next alloc untouched.
+  assert_eq(storage[off], b'X')
+  assert_eq(storage[off + 15], b'Y')
+  // LIFO reuse returns the very same block, payload still intact.
+  assert_eq(pool.alloc(), Some(off))
+  assert_eq(storage[off], b'X')
+  assert_eq(storage[off + 15], b'Y')
+}
+
+test "slab: separate blocks keep separate payload bytes" {
+  let pool = SlabAllocator::new(2, 8)
+  let first = match pool.alloc() {
+    Some(off) => off
+    None => abort("unexpected exhaustion")
+  }
+  let second = match pool.alloc() {
+    Some(off) => off
+    None => abort("unexpected exhaustion")
+  }
+  let storage = pool.storage()
+  storage[first] = b'a'
+  storage[second] = b'b'
+  assert_eq(storage[first], b'a')
+  assert_eq(storage[second], b'b')
 }
 
 // Simulates a game server's entity pool: every frame either spawns an
