@@ -1,0 +1,5 @@
+import {
+  "moonbitlang/core/bench",
+  "moonbase/mem",
+  "moonbase/collections",
+}

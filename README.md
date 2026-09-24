@@ -20,15 +20,16 @@ MoonBit 生态的痛点不是「没有包」，而是「包会烂」：语言演
 
 | 模块 | 内容 | 状态 |
 |---|---|---|
-| `@mem.allocator` | `Allocator` trait（alloc/free/reset） | ✅ M0 |
-| `@mem.bump` | `BumpAllocator`：O(1) bump 分配，整场 reset | ✅ M0 |
-| `@mem.slab` | `SlabAllocator`：固定大小块分配（对象池/每实体内存，双释放检测，LIFO 复用） | ✅ M1 |
-| `@mem.buddy` | `BuddyAllocator`：2 的幂可变大小块（malloc 风格，伙伴合并、免 size 释放） | ✅ M1 |
-| `@mem.arena` | `Arena[T]`：类型化整场分配（句柄防悬垂、reset 即释放引用） | ✅ M2 |
-| `@collections.ring_buffer` | 定容 FIFO 环形缓冲（SPSC 友好，满则拒绝） | ✅ M0 |
-| `@collections.bit_vec` | 定容位向量（`UInt64` 字存储，含 `popcnt`） | ✅ M0 |
-| `@collections.sparse_set` | 稀疏集合（ECS 存活实体集：O(1) 增删查，迭代 O(len)） | ✅ M1 |
-| `@collections.fixed_deque` | 定容双端队列（work-stealing 窃取模式：owner 前入前出、thief 后出） | ✅ M1 |
+| `@mem.Allocator` | `Allocator` trait（alloc/free/reset，资源耗尽返回 `None`） | ✅ M0 |
+| `@mem.BumpAllocator` | O(1) bump 分配，整场 reset | ✅ M0 |
+| `@mem.SlabAllocator` | 固定大小块分配（对象池/每实体内存，双释放检测，LIFO 复用） | ✅ M1 |
+| `@mem.BuddyAllocator` | 2 的幂可变大小块（malloc 风格，伙伴合并、免 size 释放） | ✅ M1 |
+| `@mem.Arena` | `Arena[T]`：类型化整场分配（句柄防悬垂、reset 即释放引用） | ✅ M2 |
+| `@collections.RingBuffer` | 定容 FIFO 环形缓冲（SPSC 友好，满则拒绝） | ✅ M0 |
+| `@collections.BitVec` | 定容位向量（`UInt64` 字存储，含 `popcnt`） | ✅ M0 |
+| `@collections.SparseSet` | 稀疏集合（ECS 存活实体集：O(1) 增删查，迭代 O(len)） | ✅ M1 |
+| `@collections.FixedDeque` | 定容双端队列（work-stealing 窃取模式：owner 前入前出、thief 后出） | ✅ M1 |
+| `bench` | 基准测试套件（9 个真实工作负载，`moon bench` 运行，CI 跑 native release） | ✅ M2 |
 
 ## 快速开始
 
@@ -37,7 +38,7 @@ moon add moonbit-community/moonbase   # 发布后可用
 ```
 
 ```moonbit
-let arena = @mem.bump.BumpAllocator::new(1024 * 1024)
+let arena = @mem.BumpAllocator::new(1024 * 1024)
 match arena.alloc(64, 8) {
   Some(off) => println("block at offset \{off}")
   None => abort("out of memory")
@@ -54,7 +55,7 @@ arena.reset()  // 整场回收，O(1)
 ## 路线图
 
 - **M1**：slab/buddy 分配器、sparse_set、fixed_deque、三后端 CI —— 已完成（2026-09）
-- **M2**：`Arena[T]` 类型化分配 ✅、基准测试（进行中）、mooncakes.io 发布（待账号）
+- **M2**：`Arena[T]` 类型化分配 ✅、基准测试 ✅、mooncakes.io 发布（待账号）
 - **M3**：无锁 SPSC 队列（依赖 core 原子操作的可用性）、性能文档
 
 ## 许可

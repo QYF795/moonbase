@@ -20,6 +20,8 @@ jobs:
         run: moon test --target js
       - name: Test (wasm-gc)
         run: moon test --target wasm-gc
+      - name: Benchmarks (native, release)
+        run: moon bench --target native --release
       - name: Zero-FFI gate
         run: |
           if grep -rEn 'extern "C"|extern "wasm"' src; then
