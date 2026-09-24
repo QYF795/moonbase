@@ -28,7 +28,7 @@ MoonBit 生态的痛点不是「没有包」，而是「包会烂」：语言演
 | `@collections.ring_buffer` | 定容 FIFO 环形缓冲（SPSC 友好，满则拒绝） | ✅ M0 |
 | `@collections.bit_vec` | 定容位向量（`UInt64` 字存储，含 `popcnt`） | ✅ M0 |
 | `@collections.sparse_set` | 稀疏集合（ECS 存活实体集：O(1) 增删查，迭代 O(len)） | ✅ M1 |
-| `@collections.fixed_deque` | 定容双端队列 | 📋 M1 |
+| `@collections.fixed_deque` | 定容双端队列（work-stealing 窃取模式：owner 前入前出、thief 后出） | ✅ M1 |
 
 ## 快速开始
 
@@ -53,7 +53,7 @@ arena.reset()  // 整场回收，O(1)
 
 ## 路线图
 
-- **M1**：slab/buddy 分配器、sparse_set、fixed_deque、三后端 CI
+- **M1**：slab/buddy 分配器、sparse_set、fixed_deque、三后端 CI —— 已完成（2026-09）
 - **M2**：`Arena[T]` 类型化分配、基准测试、mooncakes.io 发布
 - **M3**：无锁 SPSC 队列（依赖 core 原子操作的可用性）、性能文档
 

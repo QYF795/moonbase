@@ -39,17 +39,17 @@ moonbase 是 MoonBit 的底层基础设施库：为嵌入式、游戏、运行�
 
 ## 3. 复杂度总表
 
-| 操作 | Bump | Slab | Buddy | RingBuffer | BitVec | SparseSet |
-|---|---|---|---|---|---|---|
-| alloc | O(1) | O(1) | O(log n) | — | — | — |
-| free | O(1)（no-op） | O(1) | O(log n) | — | — | — |
-| reset | O(1) | O(n) | O(n) | — | — | — |
-| push/pop/peek | — | — | — | O(1) | — | — |
-| get/set | — | — | — | — | O(1) | — |
-| popcnt | — | — | — | — | O(n/64) | — |
-| insert/remove/contains | — | — | — | — | — | O(1) |
-| 迭代（len/get） | — | — | — | — | — | O(len) |
-| clear | — | — | — | — | — | O(len) |
+| 操作 | Bump | Slab | Buddy | RingBuffer | BitVec | SparseSet | FixedDeque |
+|---|---|---|---|---|---|---|---|
+| alloc | O(1) | O(1) | O(log n) | — | — | — | — |
+| free | O(1)（no-op） | O(1) | O(log n) | — | — | — | — |
+| reset | O(1) | O(n) | O(n) | — | — | — | — |
+| push/pop/peek | — | — | — | O(1) | — | — | O(1)（两端） |
+| get/set | — | — | — | — | O(1) | — | — |
+| popcnt | — | — | — | — | O(n/64) | — | — |
+| insert/remove/contains | — | — | — | — | — | O(1) | — |
+| 迭代（len/get） | — | — | — | — | — | O(len) | — |
+| clear | — | — | — | — | — | O(len) | — |
 
 最坏情况碎片：bump 每次分配 ≤ align-1 字节。
 
@@ -85,3 +85,10 @@ moonbase 是 MoonBit 的底层基础设施库：为嵌入式、游戏、运行�
 - 迭代 O(len) 而非 O(range)：百万实体宇宙、一万存活实体的 ECS 每帧遍历只花一万步
 - 明确记录的取舍：remove 用「末位元素填洞」保持 O(1) → 迭代顺序不保证；clear 是 O(len)（清零存活值的 sparse 反向引用），换来 `contains` 在 clear 后仍然精确 —— O(1) clear 的变体要么只适合「只迭代」用法，要么 contains 返回陈旧结果
 - 应用场景：ECS 存活实体集、脏标记跟踪、自由列表索引
+
+### 5.4 FixedDeque：定容双端队列
+
+- work-stealing 调度器的基础结构（Go 运行时、tokio 同款模式）：owner 在前端 push/pop（LIFO，新任务缓存热），thief 从后端偷（FIFO，最老最冷的任务，减少与 owner 争用）
+- 满则拒绝（返回 false），不覆盖不等待；所有操作 O(1)；单 owner / 多 thief 使用下结构本身无需加锁（跨线程内存序不在本库范围）
+- 与 RingBuffer 的分工：RingBuffer 是严格 FIFO（SPSC 友好），FixedDeque 支持两端操作
+- 应用场景：任务窃取队列、撤销/回退栈、双端事件缓冲
