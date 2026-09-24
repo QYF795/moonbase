@@ -108,14 +108,14 @@ pub fn SparseSet::clear(self : SparseSet) -> Unit {
 // Complexity: O(1).
 pub fn SparseSet::get(self : SparseSet, index : Int) -> Int {
   if index < 0 || index >= self.count {
-    abort("SparseSet: index ${index} out of bounds (len = ${self.count})")
+    abort("SparseSet: index \{index} out of bounds (len = \{self.count})")
   }
   self.dense[index]
 }
 
 fn SparseSet::check_value(self : SparseSet, value : Int) -> Unit {
   if value < 0 || value >= self.sparse.length() {
-    abort("SparseSet: value ${value} out of range [0, ${self.sparse.length()})")
+    abort("SparseSet: value \{value} out of range [0, \{self.sparse.length()})")
   }
 }
 

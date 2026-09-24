@@ -147,7 +147,7 @@ pub fn BuddyAllocator::alloc(self : BuddyAllocator, size : Int, align : Int) -> 
 // Complexity: O(log n).
 pub fn BuddyAllocator::free(self : BuddyAllocator, offset : Int) -> Unit {
   guard offset >= 0 && offset < self.capacity() && offset % self.min_block == 0 else {
-    abort("BuddyAllocator::free: offset ${offset} is not block-aligned")
+    abort("BuddyAllocator::free: offset \{offset} is not block-aligned")
   }
   // Walk up from the leaf: allocated nodes read 0, free subtrees read
   // their full size, so the first 0 on the path is the allocated node.
@@ -158,7 +158,7 @@ pub fn BuddyAllocator::free(self : BuddyAllocator, offset : Int) -> Unit {
     node_size = node_size * 2
   }
   guard node >= 1 else {
-    abort("BuddyAllocator::free: offset ${offset} is not allocated (double free?)")
+    abort("BuddyAllocator::free: offset \{offset} is not allocated (double free?)")
   }
   self.tree[node] = node_size
   self.allocated = self.allocated - node_size

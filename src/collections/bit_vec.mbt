@@ -57,7 +57,7 @@ pub fn BitVec::popcnt(self : BitVec) -> Int {
 
 fn BitVec::check_index(self : BitVec, index : Int) -> Unit {
   if index < 0 || index >= self.len {
-    abort("BitVec: index ${index} out of bounds (len = ${self.len})")
+    abort("BitVec: index \{index} out of bounds (len = \{self.len})")
   }
 }
 

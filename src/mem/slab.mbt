@@ -97,14 +97,14 @@ pub fn SlabAllocator::alloc(self : SlabAllocator) -> Int? {
 // Complexity: O(1).
 pub fn SlabAllocator::free(self : SlabAllocator, offset : Int) -> Unit {
   guard offset >= 0 && offset % self.block_size == 0 else {
-    abort("SlabAllocator::free: offset ${offset} is not block-aligned")
+    abort("SlabAllocator::free: offset \{offset} is not block-aligned")
   }
   let block = offset / self.block_size
   guard block < self.num_blocks else {
-    abort("SlabAllocator::free: offset ${offset} is out of range")
+    abort("SlabAllocator::free: offset \{offset} is out of range")
   }
   guard self.next[block] == -2 else {
-    abort("SlabAllocator::free: double free of block ${block}")
+    abort("SlabAllocator::free: double free of block \{block}")
   }
   self.next[block] = self.free_head
   self.free_head = block

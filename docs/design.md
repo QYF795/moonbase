@@ -39,17 +39,17 @@ moonbase 是 MoonBit 的底层基础设施库：为嵌入式、游戏、运行�
 
 ## 3. 复杂度总表
 
-| 操作 | Bump | Slab | Buddy | RingBuffer | BitVec | SparseSet | FixedDeque |
-|---|---|---|---|---|---|---|---|
-| alloc | O(1) | O(1) | O(log n) | — | — | — | — |
-| free | O(1)（no-op） | O(1) | O(log n) | — | — | — | — |
-| reset | O(1) | O(n) | O(n) | — | — | — | — |
-| push/pop/peek | — | — | — | O(1) | — | — | O(1)（两端） |
-| get/set | — | — | — | — | O(1) | — | — |
-| popcnt | — | — | — | — | O(n/64) | — | — |
-| insert/remove/contains | — | — | — | — | — | O(1) | — |
-| 迭代（len/get） | — | — | — | — | — | O(len) | — |
-| clear | — | — | — | — | — | O(len) | — |
+| 操作 | Bump | Slab | Buddy | Arena | RingBuffer | BitVec | SparseSet | FixedDeque |
+|---|---|---|---|---|---|---|---|---|
+| alloc | O(1) | O(1) | O(log n) | O(1) | — | — | — | — |
+| free | O(1)（no-op） | O(1) | O(log n) | —（整场 reset） | — | — | — | — |
+| reset | O(1) | O(n) | O(n) | O(n) | — | — | — | — |
+| push/pop/peek | — | — | — | — | O(1) | — | — | O(1)（两端） |
+| get/set | — | — | — | O(1) | — | O(1) | — | — |
+| popcnt | — | — | — | — | — | O(n/64) | — | — |
+| insert/remove/contains | — | — | — | — | — | — | O(1) | — |
+| 迭代（len/get） | — | — | — | — | — | — | O(len) | — |
+| clear | — | — | — | — | — | — | O(len) | — |
 
 最坏情况碎片：bump 每次分配 ≤ align-1 字节。
 
@@ -92,3 +92,10 @@ moonbase 是 MoonBit 的底层基础设施库：为嵌入式、游戏、运行�
 - 满则拒绝（返回 false），不覆盖不等待；所有操作 O(1)；单 owner / 多 thief 使用下结构本身无需加锁（跨线程内存序不在本库范围）
 - 与 RingBuffer 的分工：RingBuffer 是严格 FIFO（SPSC 友好），FixedDeque 支持两端操作
 - 应用场景：任务窃取队列、撤销/回退栈、双端事件缓冲
+
+### 5.5 Arena[T]：类型化整场分配
+
+- 底层分配器的类型化上层：`alloc` 存值返回整数句柄（下标），句柄无法悬垂到已释放内存 —— reset 后旧句柄在 `get` 上直接 `abort`（响亮失败而不是读垃圾）
+- 不支持逐槽释放（bump 生命周期语义）：整场 reset 回收，匹配「每帧临时对象」「编译器阶段产物」的生存期
+- `reset` 清空全部槽位（O(len)）——GC 后端上引用在 reset 时立即死亡，而不是等到下次覆写
+- 应用场景：每帧绘制列表/命令缓冲、编译器 AST/中间表示、请求级临时数据
