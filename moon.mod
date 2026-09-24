@@ -6,7 +6,7 @@ description = "Zero-dependency, cross-backend low-level infrastructure for MoonB
 
 readme = "README.md"
 
-repository = "https://github.com/QYF795/1"
+repository = "https://github.com/QYF795/moonbase"
 
 license = "Apache-2.0"
 
