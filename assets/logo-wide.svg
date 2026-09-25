@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 140" role="img" aria-label="moonbase 砌月 — zero-dependency cross-backend foundations for MoonBit">
+  <!-- mark (same construction as logo.svg) -->
+  <g transform="translate(10 22)">
+    <g fill="#F5C044">
+      <rect x="36" y="10" width="8" height="8" rx="1.5"/>
+      <rect x="44" y="10" width="8" height="8" rx="1.5"/>
+      <rect x="52" y="10" width="8" height="8" rx="1.5"/>
+      <rect x="28" y="18" width="8" height="8" rx="1.5"/>
+      <rect x="36" y="18" width="8" height="8" rx="1.5"/>
+      <rect x="44" y="18" width="8" height="8" rx="1.5"/>
+      <rect x="52" y="18" width="8" height="8" rx="1.5"/>
+      <rect x="60" y="18" width="8" height="8" rx="1.5"/>
+      <rect x="20" y="26" width="8" height="8" rx="1.5"/>
+      <rect x="28" y="26" width="8" height="8" rx="1.5"/>
+      <rect x="36" y="26" width="8" height="8" rx="1.5"/>
+      <rect x="44" y="26" width="8" height="8" rx="1.5"/>
+      <rect x="52" y="26" width="8" height="8" rx="1.5"/>
+      <rect x="60" y="26" width="8" height="8" rx="1.5"/>
+      <rect x="68" y="26" width="8" height="8" rx="1.5"/>
+      <rect x="20" y="34" width="8" height="8" rx="1.5"/>
+      <rect x="28" y="34" width="8" height="8" rx="1.5"/>
+      <rect x="36" y="34" width="8" height="8" rx="1.5"/>
+      <rect x="52" y="34" width="8" height="8" rx="1.5"/>
+      <rect x="60" y="34" width="8" height="8" rx="1.5"/>
+      <rect x="68" y="34" width="8" height="8" rx="1.5"/>
+      <rect x="20" y="42" width="8" height="8" rx="1.5"/>
+      <rect x="28" y="42" width="8" height="8" rx="1.5"/>
+      <rect x="36" y="42" width="8" height="8" rx="1.5"/>
+      <rect x="44" y="42" width="8" height="8" rx="1.5"/>
+      <rect x="60" y="42" width="8" height="8" rx="1.5"/>
+      <rect x="68" y="42" width="8" height="8" rx="1.5"/>
+      <rect x="28" y="50" width="8" height="8" rx="1.5"/>
+      <rect x="36" y="50" width="8" height="8" rx="1.5"/>
+      <rect x="44" y="50" width="8" height="8" rx="1.5"/>
+      <rect x="52" y="50" width="8" height="8" rx="1.5"/>
+      <rect x="60" y="50" width="8" height="8" rx="1.5"/>
+      <rect x="36" y="58" width="8" height="8" rx="1.5"/>
+      <rect x="44" y="58" width="8" height="8" rx="1.5"/>
+      <rect x="52" y="58" width="8" height="8" rx="1.5"/>
+    </g>
+    <g fill="#E19B2B">
+      <rect x="44" y="34" width="8" height="8" rx="1.5"/>
+      <rect x="52" y="42" width="8" height="8" rx="1.5"/>
+    </g>
+    <g fill="#2B3A67">
+      <rect x="8"  y="76" width="28" height="12" rx="1.5"/>
+      <rect x="60" y="76" width="28" height="12" rx="1.5"/>
+    </g>
+    <rect x="36" y="68" width="24" height="14" rx="1.5" fill="#35477E"/>
+    <rect x="46" y="73" width="4" height="4" rx="0.8" fill="#F5C044"/>
+  </g>
+  <!-- wordmark -->
+  <text x="126" y="66" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="44" font-weight="700" fill="#1F2328">moonbase</text>
+  <text x="128" y="104" font-family="Microsoft YaHei, Segoe UI, sans-serif" font-size="18" fill="#57606A">砌月 · 零依赖 · 零 FFI · 用块砌成的月亮</text>
+</svg>
