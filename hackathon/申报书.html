@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>moonbase 项目申报书</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+    font-size: 9.5pt;
+    line-height: 1.38;
+    color: #1f2328;
+    margin: 0;
+    padding: 0.9cm 1.4cm;
+  }
+  .doc-title { text-align: center; margin-bottom: 0.05cm; }
+  .doc-title h1 { font-size: 14.5pt; margin: 0; letter-spacing: 0.15em; }
+  .doc-sub { text-align: center; font-size: 9pt; color: #57606a; margin-bottom: 0.28cm; }
+  h2 {
+    font-size: 11pt;
+    margin: 0.22cm 0 0.08cm;
+    padding-bottom: 1.5px;
+    border-bottom: 1px solid #5b8def;
+    color: #14356b;
+  }
+  p { margin: 0.05cm 0; text-align: justify; }
+  ul { margin: 0.04cm 0 0.07cm; padding-left: 1.2em; }
+  li { margin: 0.02cm 0; }
+  table { border-collapse: collapse; width: 100%; margin: 0.1cm 0; font-size: 8.8pt; }
+  th, td { border: 1px solid #cfd6df; padding: 2px 6px; text-align: left; vertical-align: top; }
+  th { background: #eef3fb; color: #14356b; font-weight: 600; }
+  code { font-family: Consolas, monospace; font-size: 8.3pt; background: #f3f5f8; padding: 0 2px; border-radius: 2px; }
+  a { color: #1a56c4; text-decoration: none; }
+  .meta { color: #57606a; font-size: 8.5pt; }
+</style>
+</head>
+<body>
+
+<div class="doc-title">
+  <h1>项目申报书</h1>
+</div>
+<div class="doc-sub">MoonBit 国产基础软件生态开源大赛</div>
+
+<h2>项目名称</h2>
+<p><b>moonbase —— 零依赖、跨后端的 MoonBit 底层基础设施库</b>（块分配器与定容容器）</p>
+
+<h2>项目简介</h2>
+<p>MoonBit 生态不缺包，缺的是「经得起语言演进」的底层包：语言迭代快，半年不更新的库普遍编译不过，而活跃维护集中在编译器周边，跨后端、零依赖的底层基础设施（块分配器、定容容器）长期空白；嵌入式、游戏服务器、编译器运行时等「GC 不友好」场景也缺少确定性内存管理的选择。</p>
+<p>moonbase 以一条红线回应：<b>纯 MoonBit、零 FFI、零第三方依赖</b>，语言怎么迭代都编译得过。当前已交付 <span style="white-space:nowrap">13 次有效提交</span>：</p>
+<ul>
+  <li><b>分配器</b>：<code>Allocator</code> trait + Bump（O(1) 帧式分配）/ Slab（定长块池、双释放检测、LIFO 复用）/ Buddy（2 的幂可变块、伙伴合并、免 size 释放）三种块分配器 + <code>Arena[T]</code> 类型化 arena；offset 句柄直接下标读写载荷字节（<code>storage()</code>），分配过程零 GC 分配</li>
+  <li><b>容器</b>：RingBuffer（SPSC 友好 FIFO）、FixedDeque（work-stealing 双端队列）、SparseSet（ECS 存活集，增删查 O(1)、遍历 O(len)）、BitVec（<code>UInt64</code> 位向量 + popcnt）</li>
+  <li><b>质量体系</b>：契约化 API（<code>Option</code> = 资源耗尽、<code>abort</code> = 契约违反）；每模块确定性伪随机属性测试 + 场景演示测试共 43 个（js/wasm-gc 全过，native 由 CI 覆盖）；<code>moon check</code> 零警告；CI 三后端矩阵 + 零 FFI 门禁 + native release 基准测试</li>
+</ul>
+
+<h2>项目方向与适用场景</h2>
+<p><b>方向</b>：开源库 / 生态包（底层基础设施）。</p>
+<ul>
+  <li><b>游戏服务器</b>：每实体一块（Slab）+ 存活集（SparseSet）+ 帧内临时对象（Arena/Bump）+ 有界事件队列（RingBuffer）+ 任务窃取队列（FixedDeque）。仓库内 <code>examples/</code> 以迷你权威服务器端到端演示该组合：200 tick 随机客户端流量，模型镜像逐 tick 校验 8 项不变量</li>
+  <li><b>嵌入式与实时系统</b>：确定性内存、无 GC 抖动、零 FFI——未来 MoonBit 支持裸机目标时本库可直接跟上</li>
+  <li><b>编译器与运行时</b>：阶段式 arena 管理 AST/中间表示；malloc 风格可变块分配</li>
+  <li><b>调度与并发基础设施</b>：work-stealing 任务队列、SPSC 事件通道（结构本身无锁且从不覆写，跨线程内存序在 M3 补齐）</li>
+</ul>
+
+<h2>拟实现的核心功能</h2>
+<table>
+  <tr><th style="width:9%">阶段</th><th>内容</th><th style="width:24%">状态</th></tr>
+  <tr><td>M0</td><td>Allocator trait、BumpAllocator、RingBuffer、BitVec、属性测试</td><td>✅ 已完成（9 月）</td></tr>
+  <tr><td>M1</td><td>Slab/Buddy 分配器、SparseSet、FixedDeque、三后端 CI</td><td>✅ 已完成（9 月）</td></tr>
+  <tr><td>M2</td><td>Arena[T]、基准测试套件、端到端 examples、Apache-2.0 LICENSE、选型指南</td><td>✅ 已完成；mooncakes.io 发布待账号开通</td></tr>
+  <tr><td>M3</td><td>无锁 SPSC 队列（依赖 core 原子操作的可用性）、绝对内存对齐支持</td><td>计划中</td></tr>
+</table>
+
+<h2>项目类型说明</h2>
+<p><b>原创项目</b>。分配器设计参考经典算法：buddy/slab 为公开教科书算法，bump 的整场 reset 语义借鉴 Zig <code>std.heap.FixedBufferAllocator</code> 的 arena 约定——均为设计思路参考，代码全部原创，无移植、无第三方代码引用。</p>
+<p><b>开源合规</b>：Apache-2.0（LICENSE 文件已入库，moon.mod 同步声明）；仓库公开可访问：<a href="https://github.com/QYF795/moonbase">https://github.com/QYF795/moonbase</a>；以 MoonBit 为主要实现语言（100%，零 FFI）；README、可运行示例（examples）、CI、测试齐全。</p>
+
+<p class="meta" style="margin-top:0.16cm">申报日期：2026 年 9 月 · 申报人：＿＿＿＿＿＿</p>
+
+</body>
+</html>
