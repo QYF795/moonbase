@@ -238,6 +238,49 @@ fn next_rand(seed : Ref[Int]) -> Int {
   seed.val
 }
 
+// One-command demo entry (`moon run`): 200 ticks of randomized client
+// traffic, printing a live status line every 20 ticks and a final
+// summary. The full state-level verification lives in the test below,
+// which mirrors every transition in a model and checks per tick.
+fn main {
+  let server = GameServer::new()
+  let seed = Ref(20260929)
+  let mut generated = 0
+  let mut dropped = 0
+  let mut processed_total = 0
+  let mut commands_total = 0
+  for tick = 0; tick < 200; tick = tick + 1 {
+    for _i = 0; _i < 5; _i = _i + 1 {
+      let e = Event::{
+        kind: next_rand(seed) % 3,
+        id: next_rand(seed) % POOL,
+        dx: next_rand(seed) % 5 - 2,
+        dy: next_rand(seed) % 5 - 2,
+      }
+      generated = generated + 1
+      if !server.push_event(e) {
+        dropped = dropped + 1
+      }
+    }
+    server.tick()
+    processed_total = processed_total + server.processed
+    commands_total = commands_total + server.last_commands
+    if tick % 20 == 19 {
+      println(
+        "tick \{tick + 1}: alive=\{server.entities.used()}, queued=\{server.events.len()}, processed=\{server.processed}, broadcast=\{server.last_commands}",
+      )
+    }
+  }
+  println("---")
+  println("200 ticks of randomized client traffic:")
+  println("  events generated   \{generated}")
+  println("  events dropped     \{dropped}   <- bounded load shedding (queue full = drop, never block)")
+  println("  tasks processed    \{processed_total}")
+  println("  commands broadcast \{commands_total}")
+  println("  alive at end       \{server.entities.used()} / \{POOL}")
+  println("  arena overflow     \{server.cmd_overflow}   <- must stay 0")
+}
+
 test "examples: 200-tick game server keeps every invariant" {
   let server = GameServer::new()
   // The model: mirrors of x/y/hp/alive/dirty plus a replica of the

@@ -2,3 +2,5 @@ import {
   "moonbase/mem",
   "moonbase/collections",
 }
+
+pkgtype(kind: "executable")
